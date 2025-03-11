@@ -128,7 +128,7 @@ export default function Sidebar({
 					!sidebarState ? "hidden" : ""
 				}`}
 			>
-				<View className="flex flex-col mt-10">
+				<View className="flex flex-col mt-14">
 					{options}
 					{!(labels.length > 0) && (
 						<TouchableOpacity

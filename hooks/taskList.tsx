@@ -21,6 +21,7 @@ interface ActionType {
 	deleted: boolean;
 	labels: string[];
 	reminders: [];
+	source?: string;
 }
 
 interface label {
@@ -79,14 +80,22 @@ function taskReducer(tasks: TaskType[], action: ActionType): TaskType[] {
 			const existingTaskIndex = tasks.findIndex(t => t.id === action.id);
 			if (existingTaskIndex !== -1) {
 				console.log('saving: ',tasks[existingTaskIndex].title);
-				return tasks.map(task =>
-					task.id === action.id
-						? {
-							...task,
-							labels: [...action.labels],
-						}
-						: task
-				);
+				console.log('saving: ',tasks[existingTaskIndex].title);
+				return [
+					...tasks.map(task =>
+						task.id === action.id
+							? {
+									...task,
+									title: action.title,
+									note: action.note,
+									pinned: action.pinned,
+									archived: action.archived,
+									labels: action.labels,
+									deleted: action.deleted,
+							  }
+							: task
+					),
+				];
 			}
 			return [
 				...tasks,

@@ -31,6 +31,13 @@ export default function Addnote() {
 		labels: [] as string[],
 	});
 
+	const handleChange = (key: string, value: string | boolean) => {
+		setNoteData(prev => ({
+			...prev,
+			[key]: value,
+		}));
+	};
+
 	useEffect(() => {
 		let data = labels
 			.filter(data => data.label === selectedOption)
@@ -73,24 +80,23 @@ export default function Addnote() {
 		}
 	}, [noteData.deleted]);
 
-	const handleChange = (key: string, value: string | boolean) => {
-		setNoteData(prev => ({
-			...prev,
-			[key]: value,
-		}));
+	const saveNote = () => {
+		if (noteData.title || noteData.note) {
+			console.log(noteData.title);
+			dispatch({
+				type: "added",
+				...noteData,
+				title: noteData.title.trim() || "Untitled",
+				note: noteData.note.trim() || "No content",
+				reminders: [],
+				source: "addNote",
+			});
+		}
 	};
 
 	useEffect(() => {
 		const unsubscribe = navigation.addListener("beforeRemove", () => {
-			if (noteData.title || noteData.note) {
-				dispatch({
-					type: "added",
-					...noteData,
-					title: noteData.title.trim() || "Untitled",
-					note: noteData.note.trim() || "No content",
-					reminders: [],
-				});
-			}
+			saveNote();
 		});
 
 		return unsubscribe;
@@ -164,15 +170,26 @@ export default function Addnote() {
 						</Pressable>
 						<Pressable
 							onPress={() => {
-								router.push(
-									`/editlabel?adding=false&editing=false&noteId=${noteData.id}`
-								);
+								if (
+									(noteData.title || noteData.note) &&
+									labels.length > 0
+								) {
+									saveNote();
+									router.push(
+										`/editlabel?adding=false&editing=false&noteId=${noteData.id}`
+									);
+								}
 							}}
 						>
 							<MaterialIcons
 								name="label-outline"
 								size={24}
-								color="black"
+								color={
+									(noteData.title || noteData.note) &&
+									labels.length > 0
+										? "black"
+										: "gray"
+								}
 							/>
 						</Pressable>
 						<TouchableOpacity
