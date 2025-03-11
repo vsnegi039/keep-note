@@ -1,74 +1,146 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import {
+	View,
+	Text,
+	Image,
+	ScrollView,
+	TextInput,
+	StyleSheet,
+	Platform,
+	Button,
+	Alert,
+	TouchableOpacity,
+	Pressable,
+} from "react-native";
+import { useEffect, useState } from "react";
+import tw from "tailwind-react-native-classnames";
+import {
+	Ionicons,
+	MaterialCommunityIcons,
+	MaterialIcons,
+} from "@expo/vector-icons";
+import Sidebar from "@/components/sidebar";
+import { useRouter, usePathname } from "expo-router";
+import { useTasks, useSelected, useLabels } from "@/hooks/taskList";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+function TextNote({
+	title,
+	description,
+	gridView,
+	id,
+}: {
+	title: string;
+	description: string;
+	gridView: boolean;
+	id: string;
+}) {
+	const router = useRouter();
+	return (
+		<Pressable
+			className={`p-5 border rounded-md ${gridView ? "w-[45%]" : ""}`}
+			onPress={() => router.push(`/addnote?id=${id}`)}
+		>
+			<Text className={`text-xl font-bold`}>{title}</Text>
+			<Text>{description}</Text>
+		</Pressable>
+	);
+}
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
+	let data: null | string[] = [];
+	const router = useRouter();
+	const pathname = usePathname();
+	const [gridView, setGridView] = useState<boolean>(true);
+	const [sidebarState, setsidebarState] = useState<boolean>(false);
+	const selectedOption = useSelected();
+	const labels = useLabels();
+	const tasks = useTasks(selectedOption, labels);
+	const openSidebar = () => {
+		setsidebarState(true);
+	};
+	const closeSidebar = () => {
+		setsidebarState(false);
+	};
+
+	if (!data)
+		return (
+			<>
+				<Sidebar
+					sidebarState={sidebarState}
+					closeSidebar={closeSidebar}
+				/>
+				<View
+					className={`h-full w-full flex justify-center items-center bg-white`}
+				>
+					<Text className={`text-gray-500 text-lg`}>
+						Notes you add appear here
+					</Text>
+				</View>
+			</>
+		);
+	else {
+		return (
+			<>
+				<Sidebar
+					sidebarState={sidebarState}
+					closeSidebar={closeSidebar}
+				/>
+				<View className="h-full w-full bg-white">
+					<View className="mt-12">
+						<View className="bg-gray-200 mx-5 my-4 flex-row items-center rounded-full py-2 px-4">
+							<TouchableOpacity
+								className="cursor-pointer"
+								onPress={openSidebar}
+							>
+								<Ionicons name="menu" size={30} color="black" />
+							</TouchableOpacity>
+							<TextInput
+								className="ml-3 w-[70%] text-black"
+								placeholder="Search your notes"
+							/>
+							{gridView ? (
+								<MaterialCommunityIcons
+									name="view-agenda-outline"
+									size={24}
+									color="black"
+									onPress={() => setGridView(false)}
+								/>
+							) : (
+								<MaterialIcons
+									name="grid-view"
+									size={24}
+									color="black"
+									onPress={() => setGridView(true)}
+								/>
+							)}
+						</View>
+					</View>
+					<View
+						className={`py-2 px-8 gap-5 w-full ${
+							gridView ? "flex-row flex-wrap justify-between" : ""
+						}`}
+					>
+						{tasks.map(task => (
+							<TextNote
+								key={task.id}
+								id={task.id}
+								title={task.title}
+								description={task.note}
+								gridView={gridView}
+							/>
+						))}
+					</View>
+					<TouchableOpacity
+						className="flex-row items-center bg-blue-500 p-3 rounded-lg absolute bottom-[30px] right-[15px]"
+						onPress={() => router.push("/addnote")}
+					>
+						<Ionicons name="add" size={30} color="white" />
+					</TouchableOpacity>
+				</View>
+			</>
+		);
+	}
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+	input: {},
 });
