@@ -1,5 +1,9 @@
 import React, { createContext, useContext, useReducer, useState } from "react";
 
+interface NewTaskType {
+	text: string;
+	completed: boolean;
+};
 interface TaskType {
 	id: string;
 	title: string;
@@ -8,7 +12,10 @@ interface TaskType {
 	pinned: boolean;
 	deleted: boolean;
 	labels: string[];
+	tasks: NewTaskType[];
 	reminders: [];
+	descriptionType: boolean;
+	updatedAt: Date;
 }
 
 interface ActionType {
@@ -21,7 +28,9 @@ interface ActionType {
 	deleted: boolean;
 	labels: string[];
 	reminders: [];
-	source?: string;
+	tasks: NewTaskType[];
+	descriptionType: boolean;
+	updatedAt: Date;
 }
 
 interface label {
@@ -77,21 +86,23 @@ export function TasksProvider({ children }: { children: React.ReactNode }) {
 function taskReducer(tasks: TaskType[], action: ActionType): TaskType[] {
 	switch (action.type) {
 		case "added":
+			const hasChanges = (existingTask: any, updates: any): boolean => {
+				return Object.keys(existingTask).some(
+					key =>
+						key !== "updatedAt" &&
+						JSON.stringify(existingTask[key]) !==
+							JSON.stringify(updates[key])
+				);
+			};
 			const existingTaskIndex = tasks.findIndex(t => t.id === action.id);
 			if (existingTaskIndex !== -1) {
-				console.log('saving: ',tasks[existingTaskIndex].title);
-				console.log('saving: ',tasks[existingTaskIndex].title);
+				if (!hasChanges(tasks[existingTaskIndex], action)) return tasks;
 				return [
 					...tasks.map(task =>
 						task.id === action.id
 							? {
 									...task,
-									title: action.title,
-									note: action.note,
-									pinned: action.pinned,
-									archived: action.archived,
-									labels: action.labels,
-									deleted: action.deleted,
+									...action
 							  }
 							: task
 					),
@@ -107,7 +118,10 @@ function taskReducer(tasks: TaskType[], action: ActionType): TaskType[] {
 					archived: action.archived,
 					deleted: action.deleted,
 					labels: action.labels,
+					tasks: action.tasks,
+					descriptionType: action.descriptionType,
 					reminders: [],
+					updatedAt: action.updatedAt,
 				},
 			];
 		case "deleted":

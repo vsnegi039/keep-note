@@ -21,26 +21,46 @@ import {
 import Sidebar from "@/components/sidebar";
 import { useRouter, usePathname } from "expo-router";
 import { useTasks, useSelected, useLabels } from "@/hooks/taskList";
+import NoteContent from "@/components/notecontent";
+interface NewTaskType {
+	text: string;
+	completed: boolean;
+}
+interface TaskType {
+	id: string;
+	title: string;
+	note: string;
+	archived: boolean;
+	pinned: boolean;
+	deleted: boolean;
+	labels: string[];
+	tasks: NewTaskType[];
+	reminders: [];
+	descriptionType: boolean;
+}
 
 function TextNote({
-	title,
-	description,
+	noteData,
 	gridView,
 	id,
 }: {
-	title: string;
-	description: string;
+	noteData: TaskType;
 	gridView: boolean;
 	id: string;
 }) {
 	const router = useRouter();
 	return (
 		<Pressable
-			className={`p-5 border rounded-md ${gridView ? "w-[45%]" : ""}`}
+			className={`p-5 border relative rounded-md ${
+				gridView ? "w-[45%]" : ""
+			}`}
 			onPress={() => router.push(`/addnote?id=${id}`)}
 		>
-			<Text className={`text-xl font-bold`}>{title}</Text>
-			<Text>{description}</Text>
+			<NoteContent noteData={noteData} source="index" />
+			<Pressable
+				className="absolute w-full h-full m-5 left-0 top-0 z-333333333"
+				onPress={() => router.push(`/addnote?id=${id}`)}
+			></Pressable>
 		</Pressable>
 	);
 }
@@ -54,6 +74,8 @@ export default function HomeScreen() {
 	const selectedOption = useSelected();
 	const labels = useLabels();
 	const tasks = useTasks(selectedOption, labels);
+	const pinned = tasks.filter(task => task.pinned);
+	const others = tasks.filter(task => !task.pinned);
 	const openSidebar = () => {
 		setsidebarState(true);
 	};
@@ -114,20 +136,45 @@ export default function HomeScreen() {
 							)}
 						</View>
 					</View>
-					<View
-						className={`py-2 px-8 gap-5 w-full ${
-							gridView ? "flex-row flex-wrap justify-between" : ""
-						}`}
-					>
-						{tasks.map(task => (
-							<TextNote
-								key={task.id}
-								id={task.id}
-								title={task.title}
-								description={task.note}
-								gridView={gridView}
-							/>
-						))}
+					<View className="pb-2 px-8">
+						{pinned.length > 0 && others.length > 0 && (
+							<Text className="py-2">Pinned</Text>
+						)}
+						<View
+							className={`gap-5 w-full ${
+								gridView
+									? "flex-row flex-wrap justify-between"
+									: ""
+							}`}
+						>
+							{pinned.map(task => (
+								<TextNote
+									key={task.id}
+									noteData={task}
+									gridView={gridView}
+									id={task.id}
+								/>
+							))}
+						</View>
+						{pinned.length > 0 && others.length > 0 && (
+							<Text className="pt-6 pb-2">Others</Text>
+						)}
+						<View
+							className={`gap-5 w-full ${
+								gridView
+									? "flex-row flex-wrap justify-between"
+									: ""
+							}`}
+						>
+							{others.map(task => (
+								<TextNote
+									key={task.id}
+									noteData={task}
+									gridView={gridView}
+									id={task.id}
+								/>
+							))}
+						</View>
 					</View>
 					<TouchableOpacity
 						className="flex-row items-center bg-blue-500 p-3 rounded-lg absolute bottom-[30px] right-[15px]"

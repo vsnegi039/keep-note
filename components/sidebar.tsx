@@ -79,14 +79,14 @@ export default function Sidebar({
 			text: "Deleted",
 			icon: <FontAwesome6 name="trash-alt" size={24} color="black" />,
 		},
-		{
-			text: "Settings",
-			icon: <Ionicons name="settings" size={24} color="black" />,
-		},
-		{
-			text: "Help & feedback",
-			icon: <Feather name="help-circle" size={24} color="black" />,
-		},
+		// {
+		// 	text: "Settings",
+		// 	icon: <Ionicons name="settings" size={24} color="black" />,
+		// },
+		// {
+		// 	text: "Help & feedback",
+		// 	icon: <Feather name="help-circle" size={24} color="black" />,
+		// },
 	];
 	const labelData = {
 		text: "Create new label",
